@@ -26,7 +26,7 @@ import (
 )
 
 type apiServer struct {
-	gs               *shutdown.GracefulShutdown
+	gs               *shutdown.GracefulShutdownCenter
 	redisOptions     *genericoptions.RedisOptions
 	gRPCAPIServer    *grpcAPIServer
 	genericAPIServer *genericapiserver.GenericAPIServer

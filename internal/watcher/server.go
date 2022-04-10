@@ -17,7 +17,7 @@ import (
 )
 
 type watcherServer struct {
-	gs             *shutdown.GracefulShutdown
+	gs             *shutdown.GracefulShutdownCenter
 	cron           *watchJob
 	redisOptions   *genericoptions.RedisOptions
 	mysqlOptions   *genericoptions.MySQLOptions

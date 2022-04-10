@@ -186,10 +186,15 @@ func (f ShutdownFunc) OnShutdown(shutdownManager string) error {
 // When they call StartShutdown on GSInterface,
 // first ShutdownStart() is called, then all ShutdownCallbacks are executed
 // and once all ShutdownCallbacks return, ShutdownFinish is called.
+// 停机管理器标准接口
 type ShutdownManager interface {
+	// 停机管理器名称
 	GetName() string
+	// 停机管理器启动函数
 	Start(gs GSInterface) error
+	// 停机管理器开始停机前回调
 	ShutdownStart() error
+	// 停机管理器完成停机后回调
 	ShutdownFinish() error
 }
 
@@ -208,26 +213,31 @@ func (f ErrorFunc) OnError(err error) {
 	f(err)
 }
 
-// GSInterface is an interface implemented by GracefulShutdown,
+// GSInterface is an interface implemented by GracefulShutdownCenter,
 // that gets passed to ShutdownManager to call StartShutdown when shutdown
 // is requested.
+// 优雅停机中控的接口
 type GSInterface interface {
+	// 开始停机处理
 	StartShutdown(sm ShutdownManager)
+	// 错误处理
 	ReportError(err error)
+	// 配置回调
 	AddShutdownCallback(shutdownCallback ShutdownCallback)
 }
 
-// GracefulShutdown is main struct that handles ShutdownCallbacks and
+// GracefulShutdownCenter is main struct that handles ShutdownCallbacks and
 // ShutdownManagers. Initialize it with New.
-type GracefulShutdown struct {
+// 优雅停机中控
+type GracefulShutdownCenter struct {
 	callbacks    []ShutdownCallback
 	managers     []ShutdownManager
 	errorHandler ErrorHandler
 }
 
-// New initializes GracefulShutdown.
-func New() *GracefulShutdown {
-	return &GracefulShutdown{
+// New initializes GracefulShutdownCenter.
+func New() *GracefulShutdownCenter {
+	return &GracefulShutdownCenter{
 		callbacks: make([]ShutdownCallback, 0, 10),
 		managers:  make([]ShutdownManager, 0, 3),
 	}
@@ -236,7 +246,7 @@ func New() *GracefulShutdown {
 // Start calls Start on all added ShutdownManagers. The ShutdownManagers
 // start to listen to shutdown requests. Returns an error if any ShutdownManagers
 // return an error.
-func (gs *GracefulShutdown) Start() error {
+func (gs *GracefulShutdownCenter) Start() error {
 	for _, manager := range gs.managers {
 		if err := manager.Start(gs); err != nil {
 			return err
@@ -247,7 +257,7 @@ func (gs *GracefulShutdown) Start() error {
 }
 
 // AddShutdownManager adds a ShutdownManager that will listen to shutdown requests.
-func (gs *GracefulShutdown) AddShutdownManager(manager ShutdownManager) {
+func (gs *GracefulShutdownCenter) AddShutdownManager(manager ShutdownManager) {
 	gs.managers = append(gs.managers, manager)
 }
 
@@ -260,7 +270,7 @@ func (gs *GracefulShutdown) AddShutdownManager(manager ShutdownManager) {
 //		// callback code
 //		return nil
 //	}))
-func (gs *GracefulShutdown) AddShutdownCallback(shutdownCallback ShutdownCallback) {
+func (gs *GracefulShutdownCenter) AddShutdownCallback(shutdownCallback ShutdownCallback) {
 	gs.callbacks = append(gs.callbacks, shutdownCallback)
 }
 
@@ -272,7 +282,7 @@ func (gs *GracefulShutdown) AddShutdownCallback(shutdownCallback ShutdownCallbac
 //	SetErrorHandler(shutdown.ErrorFunc(func (err error) {
 //		// handle error
 //	}))
-func (gs *GracefulShutdown) SetErrorHandler(errorHandler ErrorHandler) {
+func (gs *GracefulShutdownCenter) SetErrorHandler(errorHandler ErrorHandler) {
 	gs.errorHandler = errorHandler
 }
 
@@ -280,7 +290,7 @@ func (gs *GracefulShutdown) SetErrorHandler(errorHandler ErrorHandler) {
 // first call ShutdownStart on Shutdownmanager,
 // call all ShutdownCallbacks, wait for callbacks to finish and
 // call ShutdownFinish on ShutdownManager.
-func (gs *GracefulShutdown) StartShutdown(sm ShutdownManager) {
+func (gs *GracefulShutdownCenter) StartShutdown(sm ShutdownManager) {
 	gs.ReportError(sm.ShutdownStart())
 
 	var wg sync.WaitGroup
@@ -300,7 +310,7 @@ func (gs *GracefulShutdown) StartShutdown(sm ShutdownManager) {
 
 // ReportError is a function that can be used to report errors to
 // ErrorHandler. It is used in ShutdownManagers.
-func (gs *GracefulShutdown) ReportError(err error) {
+func (gs *GracefulShutdownCenter) ReportError(err error) {
 	if err != nil && gs.errorHandler != nil {
 		gs.errorHandler.OnError(err)
 	}

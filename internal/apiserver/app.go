@@ -21,12 +21,17 @@ Find more iam-apiserver information at:
 
 // NewApp creates an App object with default parameters.
 func NewApp(basename string) *app.App {
+	// 1.初始化默认配置
 	opts := options.NewOptions()
+	// 2.初始化App结构体
 	application := app.NewApp("IAM API Server",
 		basename,
+		// 将Options配置装载到App结构体的options变量中
 		app.WithOptions(opts),
+		// 装载App的 description
 		app.WithDescription(commandDesc),
 		app.WithDefaultValidArgs(),
+		// 装载一个App 运行的函数
 		app.WithRunFunc(run(opts)),
 	)
 

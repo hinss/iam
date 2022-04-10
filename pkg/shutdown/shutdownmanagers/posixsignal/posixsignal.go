@@ -21,7 +21,7 @@ import (
 const Name = "PosixSignalManager"
 
 // PosixSignalManager implements ShutdownManager interface that is added
-// to GracefulShutdown. Initialize with NewPosixSignalManager.
+// to GracefulShutdownCenter. Initialize with NewPosixSignalManager.
 type PosixSignalManager struct {
 	signals []os.Signal
 }

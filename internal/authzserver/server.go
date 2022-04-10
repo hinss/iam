@@ -26,7 +26,7 @@ import (
 const RedisKeyPrefix = "analytics-"
 
 type authzServer struct {
-	gs               *shutdown.GracefulShutdown
+	gs               *shutdown.GracefulShutdownCenter
 	rpcServer        string
 	clientCA         string
 	redisOptions     *genericoptions.RedisOptions

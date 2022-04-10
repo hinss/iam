@@ -155,15 +155,18 @@ func WithDefaultValidArgs() Option {
 // NewApp creates a new application instance based on the given application name,
 // binary name, and other options.
 func NewApp(name string, basename string, opts ...Option) *App {
+	// 初始化App结构体
 	a := &App{
 		name:     name,
 		basename: basename,
 	}
 
+	// 遍历 配置函数装配app的属性
 	for _, o := range opts {
 		o(a)
 	}
 
+	// 创建cmd 运行命令
 	a.buildCommand()
 
 	return a
@@ -191,6 +194,8 @@ func (a *App) buildCommand() {
 		}
 		cmd.SetHelpCommand(helpCommand(FormatBaseName(a.basename)))
 	}
+	
+	// 配置cobra命令真正运行的函数
 	if a.runFunc != nil {
 		cmd.RunE = a.runCommand
 	}
@@ -204,9 +209,11 @@ func (a *App) buildCommand() {
 		}
 	}
 
+	// 如果app还没有版本 noVersion参数  添加这个flag到global的flagSet中
 	if !a.noVersion {
 		verflag.AddFlags(namedFlagSets.FlagSet("global"))
 	}
+	// 如果app还没有config 添加该flag参数到global的flagSet中
 	if !a.noConfig {
 		addConfigFlag(a.basename, namedFlagSets.FlagSet("global"))
 	}
