@@ -58,17 +58,24 @@ func newBasicAuth() middleware.AuthStrategy {
 
 func newJWTAuth() middleware.AuthStrategy {
 	ginjwt, _ := jwt.New(&jwt.GinJWTMiddleware{
+		// JWT的标识
 		Realm:            viper.GetString("jwt.Realm"),
+		// JWT hash 算法配置
 		SigningAlgorithm: "HS256",
+		// 私钥 不能泄露
 		Key:              []byte(viper.GetString("jwt.key")),
+		// 过期时间
 		Timeout:          viper.GetDuration("jwt.timeout"),
+		// 最大刷新的时间
 		MaxRefresh:       viper.GetDuration("jwt.max-refresh"),
+		// 认证函数配置
 		Authenticator:    authenticator(),
 		LoginResponse:    loginResponse(),
 		LogoutResponse: func(c *gin.Context, code int) {
 			c.JSON(http.StatusOK, nil)
 		},
 		RefreshResponse: refreshResponse(),
+		// 设置Payload的函数
 		PayloadFunc:     payloadFunc(),
 		IdentityHandler: func(c *gin.Context) interface{} {
 			claims := jwt.ExtractClaims(c)

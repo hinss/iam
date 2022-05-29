@@ -30,6 +30,7 @@ func installMiddleware(g *gin.Engine) {
 }
 
 func installController(g *gin.Engine) *gin.Engine {
+
 	// Middlewares.
 	jwtStrategy, _ := newJWTAuth().(auth.JWTStrategy)
 	g.POST("/login", jwtStrategy.LoginHandler)
@@ -46,6 +47,14 @@ func installController(g *gin.Engine) *gin.Engine {
 	storeIns, _ := mysql.GetMySQLFactoryOr(nil)
 	v1 := g.Group("/v1")
 	{
+		// base group
+		UserRouter := v1.Group("base")
+		{
+			userController := user.NewUserController(storeIns)
+			//UserRouter.GET("captcha", api.GetCaptcha)
+			UserRouter.POST("send_sms", userController.SendSms)
+		}
+
 		// user RESTful resource
 		userv1 := v1.Group("/users")
 		{
@@ -62,6 +71,7 @@ func installController(g *gin.Engine) *gin.Engine {
 			userv1.GET(":name", userController.Get) // admin api
 		}
 
+		// 使用bearer 认证
 		v1.Use(auto.AuthFunc())
 
 		// policy RESTful resource
